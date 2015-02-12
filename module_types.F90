@@ -39,7 +39,7 @@ implicit none
         integer,allocatable :: tidx(:)
         character(len=8),allocatable :: varname(:)
         !! groups: if want no group, has_group=.false.
-        logical :: has_group=.true.
+        logical :: has_group=.false.
         logical :: has_group_set=.false.
         integer :: n_group=3
         type(type_obsgroup) :: group(3)

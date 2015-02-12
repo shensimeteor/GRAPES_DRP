@@ -8,7 +8,7 @@
 !   1. obs_read_odobs : read od & obs
 !   2. obs_read_obs_byod : read obs by od given (only read the obs set by od, ie. ignore the filtered)
 !   3. obs_filter_od : filter od ( whose qcflag is flaged) to a new_od
-!   4. obs_filter_obs_byod : filter the obs by a new_filter_od
+!   4. obs_filter_obs : filter y
 !
 ! History:
 !
@@ -24,7 +24,10 @@ implicit none
 private
     ! variables
     
-    public :: obs_read_txt, obsdesc_final, obs_normalize, obs_write_txt, obs_group
+    public :: obs_read_txt, obsdesc_final, obs_normalize, obs_write_txt, obs_group, &
+              obs_getqcflag, obs_filter_od, obs_filter_obs
+
+    real :: MISSING_VALUE=-888888.00
 
 contains
 
@@ -123,6 +126,78 @@ contains
             end if
         end do
     end subroutine obs_write_txt  !!}}}
+
+    !!give ys(:,:), for i if any of y(i,:) or od%xpos/ypos/zpos is missing, set qcflag=1
+    subroutine obs_getqcflag(ys, od)  !!{{{
+    implicit none
+        character(len=*),parameter :: PROCEDURE_NAME="obs_getqcflag"
+        type(type_obsdesc) :: od
+        real :: ys(:,:), diff
+        integer :: nys, nobs, iobs, i
+        diff=1.0
+        nobs=size(ys,1)
+        nys=size(ys,2)
+        ASSUREX(nobs == od%n_obs)
+        do iobs=1,nobs
+            do i=1, nys
+                if(abs(ys(i,iobs)-MISSING_VALUE)<diff) then
+                    od%qcflag(iobs)=1
+                    exit
+                end if
+            end do
+            if(od%qcflag(iobs) == 0) then
+                if(abs(od%xpos(iobs)-MISSING_VALUE)<diff) then
+                    od%qcflag(iobs)=1
+                else if(abs(od%ypos(iobs)-MISSING_VALUE)<diff) then
+                    od%qcflag(iobs)=1
+                else if(abs(od%zpos(iobs)-MISSING_VALUE)<diff) then
+                    od%qcflag(iobs)=1
+                end if
+            end if
+        end do
+    end subroutine obs_getqcflag  !!}}}
+    
+    subroutine obs_filter_od(od, newod)  !!{{{
+    implicit none
+        character(len=*),parameter :: PROCEDURE_NAME="obs_filter_od"
+        type(type_obsdesc) :: od, newod
+        integer :: newod_nobs, i, j
+        newod_nobs=count(od%qcflag == 0)
+        call private_alloc_obsdesc(newod, newod_nobs)
+        j=0
+        do i=1, od%n_obs
+            if(od%qcflag(i)==0) then
+                j=j+1
+                newod%xpos(j)=od%xpos(i)
+                newod%ypos(j)=od%ypos(i)
+                newod%zpos(j)=od%zpos(i)
+                newod%error(j)=od%error(i)
+                newod%qcflag(j)=0
+                newod%tidx(j)=od%error(i)
+                newod%varname(j)=od%varname(i)
+                newod%has_read=.true.
+            end if
+        end do
+    end subroutine obs_filter_od  !!}}}
+
+    subroutine obs_filter_obs(od, newod, y, newy)  !!{{{
+    implicit none
+        character(len=*),parameter :: PROCEDURE_NAME="obs_filter_obs"
+        type(type_obsdesc) :: od, newod
+        real :: y(:), newy(:)
+        integer :: i, j
+        ASSUREX(size(y)==od%n_obs)
+        ASSUREX(size(newy)==newod%n_obs)
+        ASSUREX(od%has_read)
+        ASSUREX(newod%has_read)
+        j=0
+        do i=1, od%n_obs
+            if(od%qcflag(i)==0) then
+                j=j+1
+                newy(j)=y(i)
+            end if
+        end do
+    end subroutine obs_filter_obs  !!}}}
 
 !!!! MODEL DEPENDENT!!
     subroutine obs_group(od)  !!{{{

@@ -49,6 +49,7 @@ contains
   subroutine dealloc_grapesinput(gidata)  !!{{{
   implicit none
       character(len=*),parameter :: PROCEDURE_NAME="dealloc_grapesinput"
+      type(type_grapesinput) :: gidata
       deallocate(  gidata%dthdz, gidata%thref, gidata%piref, gidata%zsx, gidata%zsy, &
                  gidata%zz, gidata%pip, gidata%pi, gidata%u, gidata%v, &
                  gidata%wzet, gidata%thp, gidata%th, gidata%moist_2, gidata%resv )
@@ -58,7 +59,7 @@ contains
                  gidata%xice, gidata%xlat, gidata%xlong, gidata%soil_type, gidata%vegfrac )
       deallocate(  gidata%dx, gidata%dy, gidata%fu, gidata%fv, gidata%cosv, &
                  gidata%cosfi, gidata%tanu, gidata%tanv )
-      deallocate(  gidata%zh, gidata%dk, gidata%d2k, gidata%zzs(nd), gidata%dzs(nd) )
+      deallocate(  gidata%zh, gidata%dk, gidata%d2k, gidata%zzs, gidata%dzs )
       gidata%NX=0
       gidata%NY=0
       gidata%NZ=0

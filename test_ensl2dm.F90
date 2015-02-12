@@ -24,21 +24,24 @@ implicit none
     type(type_ensPx) :: ensPx
     type(type_ensPy) :: ensPy
     real,allocatable :: x(:), y(:), stdv(:)
-    real :: y_max(5000)
+    real :: y_max(6000)
     character(len=*),parameter :: ncfile="input.nc"
     character(len=*),parameter :: obsfiles(7)=(/"qg_obs.00000.txt", &
                         "qg_obs.00001.txt", "qg_obs.00002.txt", "qg_obs.00003.txt", &
                         "qg_obs.00004.txt", "qg_obs.00005.txt", "qg_obs.00006.txt"/)
     integer,parameter :: obs_tidx(7)=(/1,2,3,4,5,6,7/)
-    integer,parameter :: nvar=1
-    character(len=3) :: var_names(nvar)=(/"psi"/)
+    integer,parameter :: nvar=4
+    character(len=3) :: var_names(nvar)=(/"u","v","pi","hum"/)
     integer,parameter :: npts=15
     integer :: ref_xid(npts)=1, &
-               ref_yid(npts)=(/1, 9, 16, 24, 32, &
+               ref_yid(npts)=(/1, 45, 90, 135, 179, &
+                               1, 45, 90, 135, 179,
+                               1, 45, 90, 135, 
+               1, 9, 16, 24, 32, &
                                1, 9, 16, 24, 32, &
                                1, 9, 16, 24, 32/), &
-               ref_zid(npts)=(/1,1,1,1,1, &
-                               2,2,2,2,2, &
+               ref_zid(npts)=(/3,3,3,3,3, &
+                                &
                                3,3,3,3,3/)
     character(len=7) :: point_name(npts)= &
                 (/"spol200", "smid200", "equat200", "nmid200", "npol200", &
@@ -50,7 +53,7 @@ implicit none
 
 
     call modeldesc_init(md)
-    call modeldesc_getcoord(md, ncfile)
+    call modeldesc_getcoord(md)
     !!read/write x test, passed
     !allocate(x(md%n_total))
     !call modelstate_input(md, ncfile, x)

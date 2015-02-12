@@ -1,0 +1,37 @@
+&drpsettings
+n_obs_slot = 7,
+with_Bterm = .true.,
+with_Cterm = .false.,
+Balpha_option = 3.,
+do_Py_EOF = .false., 
+pertPy_option = 2,
+do_read_yb = .false.,
+inflate_option = 0,
+inflator = 1.0,
+low_limit_inflator=0.5,
+up_limit_inflator=1000,
+do_ETKF = .false.,
+max_nt = 50,
+eps = 0.02,
+minisolver = 1,
+analysis_time = 0,
+is_outerloop = .false.,
+is_outerloop_1st = .false.,
+n_mem = 20,
+max_n_obs = 5000
+/
+
+&runsettings
+to_output_Bbalpha=.true.,
+to_output_jval=.true.,
+to_output_jgrad=.true.,
+to_output_ob=.true.,
+to_output_inflator=.true.,
+to_output_pydcorr=.true.
+/
+
+&localization
+use_localman=.true.,
+ishorizon=.true.,
+isvertical=.false.
+/

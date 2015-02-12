@@ -112,14 +112,14 @@ contains
         !!y
         md%ycoords(1)%n=180
         allocate(md%ycoords(1)%val(md%ycoords(1)%n))
-        call fspan(-89.5,89.5,180,md%ycoords(1))
+        call fspan(-89.5,89.5,180,md%ycoords(1)%val)
         md%ycoords(1)%iscycle = .false.
         md%ycoords(2)%n=179
-        call fspan(-89,89,179,md%ycoords(2))
+        call fspan(-89.,89.,179,md%ycoords(2)%val)
         allocate(md%ycoords(2)%val(md%ycoords(2)%n))
         md%ycoords(2)%iscycle = .false.
         !!todo :zcoords :
-        zh=(/0, 65.24981, 230.1493, 474.9776, 784.4373, 1147.267, 1554.654, 1999.950, 2478.427, 2986.432, &
+        zh=(/0., 65.24981, 230.1493, 474.9776, 784.4373, 1147.267, 1554.654, 1999.950, 2478.427, 2986.432, &
            3521.796, 4083.160, 4670.249, 5283.126, 5922.162, 6588.492, 7283.020, 8006.647, 8759.948, &
            9543.588, 10357.67, 11202.07, 12078.03, 12986.87, 13935.47, 14995.40, 16194.72, 17627.36, &
            19000.00, 20500.00, 22000.00, 23500.00, 25300.00, 27000.00, 29000.00, 30700.00, 32500.00/)
@@ -161,7 +161,7 @@ contains
         x(md%vars(1)%ibgn: md%vars(1)%iend) = reshape(gidata%u(:,:,2:37), (/360*180*36/))
         x(md%vars(2)%ibgn: md%vars(2)%iend) = reshape(gidata%v(:,2:180,2:37), (/360*179*36/))
         x(md%vars(3)%ibgn: md%vars(3)%iend) = reshape(gidata%pi, (/360*180*38/))
-        x(md%vars(4)%ibgn: md%vars(4)%iend) = reshape(gidata%hum, (/360*180*37/))
+        x(md%vars(4)%ibgn: md%vars(4)%iend) = reshape(gidata%moist_2(:,:,2:38), (/360*180*37/))
         call dealloc_grapesinput(gidata)
     end subroutine modelstate_input  !!}}}
 

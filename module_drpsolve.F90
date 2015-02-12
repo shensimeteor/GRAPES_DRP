@@ -89,13 +89,13 @@ contains
         type(type_drpconfig) :: dc
         type(type_localdesc) :: ld
         type(type_modeldesc) :: md
-        type(type_obsdesc) :: od
+        type(type_obsdesc) :: od1, od
         type(type_ensPx) :: ensPx 
         type(type_ensPy) :: ensPy
         type(type_beta) :: beta, betag
         real,allocatable :: xb(:), xg(:), xb00(:), xg00(:), &
                             balpha(:,:), xa(:), xa00(:), pydcorr(:), xtemp(:)
-        real,allocatable :: d_max(:), d(:), yb(:), ybase(:), ob(:), dy_sim(:)
+        real,allocatable :: d_max(:), d(:), yb(:), ybase(:), ob(:), dy_sim(:), ytemp(:)
         logical :: to_io_00 !! to read/write **00 file
         logical :: to_read_yb !! if use the averge of Py, no need to read yb
         logical :: to_read_beta, to_write_beta
@@ -106,7 +106,7 @@ contains
         !!1. set md, read xb/xg/xb00/xg00
         RP_LOG("DRP read xb/xg/Px ---")
         call modeldesc_init(md)
-        call modeldesc_getcoord(md, trim(dc%xbfile))
+        call modeldesc_getcoord(md)
         allocate(xb(md%n_total))
         allocate(xg(md%n_total))
         call modelstate_input(md, trim(dc%xbfile), xb)
@@ -128,24 +128,39 @@ contains
         !!3. read od & ob & yb
         RP_LOG("DRP read&normalize d/Py[/yb] ---")
         allocate(d_max(dc%max_n_obs))
-        call obs_read_txt(od, d_max, dc%obfile, (/(i-1,i=1,dc%n_obs_slot)/))
-        allocate(ob(od%n_obs),d(od%n_obs))
-        ob=d_max(1:od%n_obs)
+        call obs_read_txt(od1, d_max, dc%obfile, (/(i-1,i=1,dc%n_obs_slot)/))
+        allocate(ob(od1%n_obs))
+        ob=d_max(1:od1%n_obs)
         deallocate(d_max)
         to_read_yb=dc%do_read_yb
-        allocate(yb(od%n_obs))
+        allocate(yb(od1%n_obs))
         if(to_read_yb) then  !!yb read from file
-            call obs_read_txt(od, yb, dc%ybfile, (/(i-1,i=1,dc%n_obs_slot)/))
+            call obs_read_txt(od1, yb, dc%ybfile, (/(i-1,i=1,dc%n_obs_slot)/))
+        else 
+            yb=ob !!temporarily
         end if
-        call obs_group(od)
+!!        call obs_group(od)
 !!        call test_print_obsgroup(od)
         
-        !!4. filter od/d
-        !not in Baro Model
+        !!4. read Py & filter od/yb/Py:
+        call Py_read(od1, dc%pyfiles, (/(i-1,i=1,dc%n_obs_slot)/), ensPy)
+        ASSUREX(size((/ob,yb,ensPy%Py/))==od1%n_obs*(2+ensPy%n_mem))
+        call obs_getqcflag(reshape((/ob,yb,ensPy%Py/),(/od1%n_obs,2+ensPy%n_mem/)), od1)
+        call obs_filter_od(od1, od)
+        allocate(ytemp(od%n_obs))
+        call obs_filter_obs(od1, od, ob, ytemp)
+        deallocate(ob)
+        allocate(ob(od%n_obs))
+        ob=ytemp
+        call obs_filter_obs(od1, od, yb, ytemp)
+        deallocate(yb)
+        allocate(yb(od%n_obs))
+        yb=ytemp
+        call Py_filter(od1, od, ensPy)
 
-        !!5. read Py, calculate the perturbed Py, calculate d
-        call Py_read(od, dc%pyfiles, (/(i-1,i=1,dc%n_obs_slot)/), ensPy)
+        !!5. calculate the perturbed Py, calculate d
         allocate(ybase(od%n_obs)) !! ptb_Py=Py-ybase
+        allocate(d(od%n_obs))
         if( (.not. dc%do_read_yb) .or. (dc%pertPy_option == 2)) then
             !!if pertPy_option==1 and do_read_yb=false, not happens
             ybase=0

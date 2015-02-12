@@ -1,0 +1,17 @@
+&namelist_px
+do_stdv=.true.,
+do_cova=.true.,
+do_corr=.true.,
+do_zone_average=.false.,
+do_zone_abs_average=.true.,
+list_files="list_files.txt"
+prefix="nolocal_",
+do_horizon=.true.,
+do_vertical=.true.
+use_localman=.true.,
+npts=5,
+lat_idx=2, 11, 21, 31, 40,
+lon_idx=1, 21, 41, 61, 80,
+pts_name="spole","smidl","equat","nmidl","npole"
+
+/

@@ -28,7 +28,7 @@ use module_localman
 implicit none
 private
     ! variables
-    public :: Px_read, Py_read, Px_write, Px_localize, Py_localize, &
+    public :: Px_read, Py_read, Px_write, Py_filter, Px_localize, Py_localize, &
               Px_multiply_vector, Py_multiply_vector, Py_transpose_multiply_vector, &
               Px_get_row, Px_get_stdv, Py_get_row, Px_full2pert, Py_full2pert, &
               Px_average,  Px_delete, Py_delete, Px_get_stdv_px, Px_pert2full
@@ -88,6 +88,26 @@ contains
         end do
     end subroutine Py_read  !!}}}
 
+    !!filter Py from od to newod
+    subroutine Py_filter(od, newod, ensPy)  !!{{{
+    implicit none
+        character(len=*),parameter :: PROCEDURE_NAME="Py_filter"
+        type(type_ensPy) :: ensPy
+        type(type_obsdesc) :: od, newod
+        integer :: i
+        real, allocatable :: ytemp(:,:)
+        ASSUREX(newod%has_read)
+        ASSUREX(od%has_read)
+        allocate(ytemp(newod%n_obs, ensPy%n_mem))
+        do i=1, ensPy%n_mem
+            call obs_filter_obs(od, newod, ensPy%Py(:,i), ytemp(:,i))
+        end do 
+        deallocate(ensPy%Py)
+        allocate(ensPy%Py(newod%n_obs, ensPy%n_mem))
+        ensPy%n_state=newod%n_obs
+        ensPy%Py=ytemp
+        deallocate(ytemp)
+    end subroutine Py_filter  !!}}}
 
 !!do localize( include none-localization)
     subroutine Px_localize(ensPx, ld)  !!{{{
